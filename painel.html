@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MonkeyType Cheat - Painel de Controle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1em;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .status.connected {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .status.disconnected {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .status.typing {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+
+        .status-icon {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .control-group {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .control-group h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .speed-slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none; 
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .speed-value {
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            min-width: 60px;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .text-preview {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px; /* Aumentar altura para mostrar mais texto */
+            overflow-y: auto;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+            white-space: pre-wrap; /* Preservar espaços e quebras de linha */
+            word-wrap: break-word; /* Quebrar palavras longas */
+        }
+
+        .text-preview:empty::before {
+            content: "Aguardando texto do Tampermonkey...";
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .footer {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        .hotkey {
+            background: #4a5568;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐒 MonkeyType Cheat</h1>
+            <p>Painel Web - Digitação Manual</p>
+        </div>
+
+        <div id="status" class="status disconnected">
+            <div class="status-icon"></div>
+            <span id="status-text">Desconectado</span>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <h3>⚡ Velocidade de Digitação</h3>
+                <div class="speed-control">
+                    <span>Lento</span>
+                    <input type="range" id="speedSlider" class="speed-slider" min="0.1" max="10" step="0.1" value="1">
+                    <span>Rápido</span>
+                </div>
+                <div class="speed-value" id="speedValue">1.0x</div>
+            </div>
+
+            <div class="control-group">
+                <h3>⌨️ Digitação Manual</h3>
+                <p style="color: #718096; font-size: 0.9em; margin-bottom: 15px;">Clique no botão para iniciar a digitação manualmente</p>
+                <button id="startBtn" class="button" disabled>
+                    🚀 Iniciar Digitação Manual
+                </button>
+            </div>
+        </div>
+
+        <div class="text-preview" id="textPreview"></div>
+
+        <div class="footer">
+            <p>Hotkey: <span class="hotkey">Ctrl+Shift+M</span> para abrir painel</p>
+            <p>Servidor: localhost:8080 | Digitação manual</p>
+        </div>
+    </div>
+
+    <script>
+        let textoRecebido = null;
+        let conectado = false;
+        let digitando = false;
+        let monitoramentoAtivo = false;
+
+        const statusEl = document.getElementById('status');
+        const statusTextEl = document.getElementById('status-text');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const startBtn = document.getElementById('startBtn');
+        const textPreview = document.getElementById('textPreview');
+
+        // Atualizar velocidade
+        speedSlider.addEventListener('input', function() {
+            const speed = parseFloat(this.value);
+            speedValue.textContent = speed.toFixed(1) + 'x';
+            
+            fetch('/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ speed: speed })
+            }).catch(console.error);
+        });
+
+        // Botão iniciar
+        startBtn.addEventListener('click', function() {
+            if (!textoRecebido || digitando) return;
+            
+            digitando = true;
+            updateStatus('typing', 'Digitando...');
+            startBtn.disabled = true;
+            
+            fetch('/iniciar')
+                .then(() => {
+                    setTimeout(() => {
+                        digitando = false;
+                        updateStatus('connected', 'Conectado - Pronto');
+                        startBtn.disabled = false;
+                    }, 2000);
+                })
+                .catch(console.error);
+        });
+
+        function updateStatus(type, text) {
+            statusEl.className = `status ${type}`;
+            
+            // Adicionar informação sobre monitoramento no texto do status
+            let statusText = text;
+            if (type === 'connected' && monitoramentoAtivo) {
+                statusText += ' - Monitoramento ATIVO';
+            }
+            
+            statusTextEl.textContent = statusText;
+            
+            if (type === 'connected') {
+                startBtn.disabled = !textoRecebido;
+            } else {
+                startBtn.disabled = true;
+            }
+        }
+
+        function checkStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    conectado = true;
+                    monitoramentoAtivo = data.monitoramento_ativo || false;
+                    
+                    // Usar texto_acumulado se disponível, senão usar texto normal
+                    const textoParaExibir = data.texto_acumulado || data.texto;
+                    
+                    if (textoParaExibir && textoParaExibir !== textoRecebido) {
+                        textoRecebido = textoParaExibir;
+                        // Mostrar todo o texto em vez de apenas um preview
+                        textPreview.textContent = textoRecebido;
+                        
+                        // Adicionar informações adicionais
+                        const palavras = textoRecebido.split(' ').filter(p => p.trim().length > 0);
+                        const numeros = textoRecebido.match(/\d+/g) || [];
+                        
+                        // Criar um elemento para mostrar estatísticas
+                        let statsDiv = document.getElementById('textStats');
+                        if (!statsDiv) {
+                            statsDiv = document.createElement('div');
+                            statsDiv.id = 'textStats';
+                            statsDiv.style.cssText = 'margin-top: 10px; padding: 10px; background: #e2e8f0; border-radius: 8px; font-size: 0.8em;';
+                            textPreview.parentNode.insertBefore(statsDiv, textPreview.nextSibling);
+                        }
+                        
+                        statsDiv.innerHTML = `
+                            <strong>Estatísticas do Texto:</strong><br>
+                            Palavras: ${palavras.length}<br>
+                            Números encontrados: ${numeros.length}<br>
+                            Caracteres totais: ${textoRecebido.length}<br>
+                            <strong>Monitoramento:</strong> ${monitoramentoAtivo ? 'ATIVO' : 'INATIVO'}
+                        `;
+                    }
+                    
+                    if (data.digitando) {
+                        updateStatus('typing', 'Digitando...');
+                    } else if (textoRecebido) {
+                        updateStatus('connected', 'Conectado - Pronto');
+                    } else {
+                        updateStatus('connected', 'Conectado - Aguardando texto');
+                    }
+                })
+                .catch(() => {
+                    conectado = false;
+                    updateStatus('disconnected', 'Desconectado');
+                    textoRecebido = null;
+                    textPreview.textContent = '';
+                });
+        }
+
+        // Verificar status a cada 1 segundo
+        setInterval(checkStatus, 1000);
+        checkStatus();
+    </script>
+</body>
+</html>
